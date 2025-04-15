@@ -25,7 +25,7 @@ import {
 } from "@/components/project_browser/table";
 import { Button } from "@/components/commons/button";
 import { Input } from "@/components/commons/input";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -47,18 +47,20 @@ import { Project } from "@/types/project";
 
 interface UserProjectsTableProps {
   userId: string;
-  projects: Project[];
-  onDeleteSelected: (selectedIds: number[]) => void;
+  projects: Project[] | undefined;
+  onDeleteSelected: (selectedIds: string[]) => void;
 }
 
-export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserProjectsTableProps) {
+export function UserProjectsTable({ userId, projects = [], onDeleteSelected }: UserProjectsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
 
-  // Define table columns with selection and project link
+  console.log("User ID:", userId);
+  console.log("Projects:", projects);
+
   const columns: ColumnDef<Project>[] = [
     {
       id: "select",
@@ -83,25 +85,27 @@ export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserPr
       enableHiding: false,
     },
     {
-      accessorKey: "name",
-      header: "Name",
+      accessorKey: "projectName", 
+      header: "Projects",
       cell: ({ row }) => {
         const project = row.original;
         return (
           <Link
-            href={`/users/${userId}/projects/${project.id}`}
+            href={`/users/${userId}/projects/${project.projectId}/dashboard`}
             className="cursor-pointer hover:underline"
           >
-            {project.name}
+            <ChevronRight className="text-sm" />
+            <span>{project.projectName}</span>
           </Link>
         );
       },
     },
+    
     {
-      accessorKey: "lastModified",
+      accessorKey: "updatedAt",  
       header: "Last Modified",
       cell: ({ row }) => {
-        const date = new Date(row.original.lastModified);
+        const date = new Date(row.original.updatedAt);
         return <div>{date.toLocaleString()}</div>;
       },
     },
@@ -126,19 +130,16 @@ export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserPr
     },
   });
 
-  // Gather selected project IDs from rowSelection and open the AlertDialog
   const handleDeleteSelectedClick = () => {
     const selectedIds = Object.keys(rowSelection)
       .map((rowId) => {
-        // We assume the row id is the index (or use a lookup method)
         const row = table.getRowModel().rows.find((r) => r.id === rowId);
-        return row?.original.id;
+        return row?.original.projectId;
       })
-      .filter((id): id is number => id !== undefined);
+      .filter((id): id is string => id !== undefined);
     setSelectedProjectIds(selectedIds);
   };
 
-  // Confirm deletion via callback
   const handleConfirmDelete = () => {
     onDeleteSelected(selectedProjectIds);
     setSelectedProjectIds([]);
@@ -149,9 +150,9 @@ export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserPr
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter projects..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          value={(table.getColumn("projectName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("projectName")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -181,7 +182,8 @@ export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserPr
         </DropdownMenu>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
+      <div className="rounded-md border overflow-x-auto w-[1000px] max-w-full">
+
         <Table className="min-w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -197,7 +199,7 @@ export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserPr
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.length ? (
+            {table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
@@ -218,7 +220,6 @@ export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserPr
         </Table>
       </div>
 
-      {/* Pagination Controls */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
@@ -238,7 +239,6 @@ export function UserProjectsTable({ userId, projects, onDeleteSelected }: UserPr
         </Button>
       </div>
 
-      {/* Delete Selected Button and AlertDialog */}
       <div className="flex justify-end py-4">
         <Button
           variant="destructive"

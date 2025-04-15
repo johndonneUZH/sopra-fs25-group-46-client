@@ -1,4 +1,4 @@
 export default function ProjectEmptyPage() {
-    return null; 
+    return null; // or just "<></>"
   }
   

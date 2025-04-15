@@ -72,13 +72,72 @@ export class ApiService {
    */
   public async get<T>(endpoint: string): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: this.buildHeaders(),
+    });
+    
+    return this.processResponse<T>(
+      res,
+      "An error occurred while fetching the data.\n",
+    );
+  }
+
+  public async getUser<T>(userId: string): Promise<T> {
+    const url = `${this.baseURL}${'/users/'}${userId}`;
     const res = await fetch(url, {
       method: "GET",
       headers: this.buildHeaders(),
     });
     return this.processResponse<T>(
       res,
-      "An error occurred while fetching the data.\n",
+      "An error occurred while fetching the user data.\n",
+    );
+  }
+
+  public async getFriends<T>(userId: string): Promise<T> {
+    const url = `${this.baseURL}${'/users/'}${userId}/friends`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: this.buildHeaders(),
+    });
+    return this.processResponse<T>(
+      res,
+      "An error occurred while fetching the friends data.\n",
+    );
+  }
+
+  public async getProjects<T>(userId: string): Promise<T> {
+    const url = `${this.baseURL}${`/users/`}${userId}/projects`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: this.buildHeaders(),
+    });
+    return this.processResponse<T>(
+      res,
+      "An error occurred while fetching the project data.\n",
+    );
+  }
+
+  public async getDailyContributions<T = any>(
+    projectId: string,
+    days?: number
+  ): Promise<T> {
+    const url = new URL(`${this.baseURL}/projects/${projectId}/changes/daily-contributions`);
+    
+    if (days) {
+      url.searchParams.append('days', days.toString());
+    }
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: this.buildHeaders(),
+    });
+    
+    return this.processResponse<T>(
+      res,
+      "An error occurred while fetching contributions data.",
     );
   }
 
@@ -92,7 +151,7 @@ export class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     const res = await fetch(url, {
       method: "POST",
-      headers: this.defaultHeaders,
+      headers: this.buildHeaders(),
       body: JSON.stringify(data),
     });
     return this.processResponse<T>(
@@ -117,6 +176,19 @@ export class ApiService {
   
     return response;
   }
+
+  public async postChanges<T>( changeType: string, projectId: string): Promise<T> {
+    const url = `${this.baseURL}${`/projects/`}${projectId}/changes`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.buildHeaders(),
+      body: JSON.stringify({ "changeType": changeType }),
+    });
+    return this.processResponse<T>(
+      res,
+      "An error occurred while posting the changes.\n",
+    );
+  }
   
   /**
    * PUT request.
@@ -128,7 +200,7 @@ export class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     const res = await fetch(url, {
       method: "PUT",
-      headers: this.defaultHeaders,
+      headers: this.buildHeaders(),
       body: JSON.stringify(data),
     });
     return this.processResponse<T>(
@@ -144,13 +216,28 @@ export class ApiService {
    */
   public async delete<T>(endpoint: string): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+
     const res = await fetch(url, {
       method: "DELETE",
-      headers: this.defaultHeaders,
+      headers: this.buildHeaders(),
     });
     return this.processResponse<T>(
       res,
       "An error occurred while deleting the data.\n",
     );
   }
+
+  public async deleteProjectChanges(projectId: string): Promise<void> {
+    const url = `${this.baseURL}${`/projects/`}${projectId}/changes`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: this.buildHeaders(),
+    });
+    return this.processResponse<void>(
+      res,
+      "An error occurred while deleting the project changes.\n",
+    );
+  }
+
+
 }
