@@ -1,10 +1,11 @@
+"use client";
 /* eslint-disable */
-"use client"
 
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronsUpDown, Plus, Search } from "lucide-react"
+import { ChevronsUpDown, Plus, Search } from "lucide-react";
 import { ProjectsDialog } from "@components/settings_page/project_dialog";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,70 +13,69 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/project_browser/dropdown-menu"
+} from "@/components/project_browser/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/sidebar/sidebar"
-import { Input } from "@/components/commons/input"
-import { useProject } from '@/hooks/useProject'
+} from "@/components/sidebar/sidebar";
+import { Input } from "@/components/commons/input";
+
+import { useCurrentProjectId, setCurrentProjectId } from "@/lib/commons/useCurrentProjectId";
+import { useCurrentUserId } from "@/lib/commons/useCurrentUserId";
 
 export function TeamSwitcher({ teams }: {
   teams: {
-    id: string // Make sure your team objects have an id property
+    id: string
     name: string
     logo: React.ElementType
     plan: string
   }[]
 }) {
-  const { projectId, updateProjectId } = useProject()
-  const { isMobile } = useSidebar()
-  const router = useRouter()
+  const currentProjectId = useCurrentProjectId();
+  const { isMobile } = useSidebar();
+  const router = useRouter();
   const pathname = usePathname();
-  const userId = sessionStorage.getItem("userId") || ""
   const [isOpen, setIsOpen] = useState(false);
-
-  // Initialize activeTeam from sessionStorage or default to first team
-  const [activeTeam, setActiveTeam] = useState<typeof teams[0] | undefined>(undefined)
+  const userId =  useCurrentUserId();
+  const [search, setSearch] = useState("");
+  const [activeTeam, setActiveTeam] = useState<typeof teams[0] | undefined>(undefined);
 
   useEffect(() => {
-    const storedProjectId = sessionStorage.getItem("projectId")
-    const matchedTeam = storedProjectId
-      ? teams.find(team => team.id === storedProjectId) || teams[0]
-      : teams[0]
+    const matchedTeam = currentProjectId
+      ? teams.find(team => team.id === currentProjectId) || teams[0]
+      : teams[0];
+    setActiveTeam(matchedTeam);
+  }, [teams, currentProjectId]);
 
-    setActiveTeam(matchedTeam)
-  }, [teams])
-  const [search, setSearch] = React.useState("")
-
-  React.useEffect(() => {
-    if (!userId) {
-      router.push("/login")
-    }
-  }, [userId, router])
+  useEffect(() => {
+    if (!userId) router.push("/login");
+  }, [userId, router]);
 
   const handleTeamSelect = (team: typeof teams[0]) => {
-    updateProjectId(team.id)
-    if (pathname.includes("/settings") && userId) {
-      router.push(`/users/${userId}/projects/${team.id}/settings`);
-    } else if (pathname.includes("/changelog") && userId) {
-      router.push(`/users/${userId}/projects/${team.id}/changelog`);
-    } else if (pathname.includes("/calendar") && userId) {
-      router.push(`/users/${userId}/projects/${team.id}/calendar`);
-    } else if (pathname.includes("/dashboard") && userId) {
-      router.push(`/users/${userId}/projects/${team.id}/dashboard`);
+    setCurrentProjectId(team.id); // ✅ escritura limpia
+
+    if (userId) {
+      if (pathname.includes("/settings")) {
+        router.push(`/users/${userId}/projects/${team.id}/settings`);
+      } else if (pathname.includes("/changelog")) {
+        router.push(`/users/${userId}/projects/${team.id}/changelog`);
+      } else if (pathname.includes("/calendar")) {
+        router.push(`/users/${userId}/projects/${team.id}/calendar`);
+      } else if (pathname.includes("/dashboard")) {
+        router.push(`/users/${userId}/projects/${team.id}/dashboard`);
+      }
     }
-    setSearch("")
-  }
+
+    setSearch("");
+  };
 
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   return (
-    <>
     <SidebarMenu>
       <SidebarMenuItem>
         {!activeTeam ? (
@@ -126,7 +126,7 @@ export function TeamSwitcher({ teams }: {
                 {filteredTeams.length > 0 ? (
                   filteredTeams.map((team) => (
                     <DropdownMenuItem
-                      key={team.id} // Using id as key is more reliable
+                      key={team.id}
                       onClick={() => handleTeamSelect(team)}
                       className="gap-2 p-2"
                     >
@@ -150,6 +150,5 @@ export function TeamSwitcher({ teams }: {
         )}
       </SidebarMenuItem>
     </SidebarMenu>
-    </>
-  )
+  );
 }

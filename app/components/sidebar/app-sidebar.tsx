@@ -1,15 +1,13 @@
-/* eslint-disable */
 "use client";
-
+/* eslint-disable */
 import * as React from "react";
 import {
   Settings2,
-  LayoutDashboard,
   FileClock,
   Users,
   Calendar,
   Bell,
-  PlusCircle
+  LayoutDashboard,
 } from "lucide-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -28,7 +26,7 @@ import { User } from "@/types/user";
 import { useEffect, useState } from "react";
 import { Project } from "@/types/project";
 import { useRouter } from "next/navigation";
-import { useProject } from '@/hooks/useProject'
+import { useCurrentProjectId, setCurrentProjectId } from "@/lib/commons/useCurrentProjectId"; 
 import { getComponentFromString } from "@/components/sidebar/iconMappings";
 
 const apiService = new ApiService();
@@ -39,18 +37,10 @@ type AppSidebarProps = Omit<React.ComponentProps<typeof Sidebar>, "triggerReload
 
 export function AppSidebar({ triggerReload = null, ...props }: AppSidebarProps) {
   const [data, setData] = useState<any>(null);
-  const [userId, setUserId] = useState<string | null>("");
-  const { projectId: currentProjectId } = useProject()
+  const [userId, ] = useState<string | null>(null);
+  const currentProjectId = useCurrentProjectId(); 
   const router = useRouter();
 
-  useEffect(() => {
-    const sessionUserId = sessionStorage.getItem("userId")
-    if (sessionUserId) {
-      setUserId(sessionUserId)
-    } else {
-      router.push("/login")
-    }
-  }, [router])
 
   const getNavItems = React.useCallback((userId: string, projectId: string) => {
     return {
@@ -106,8 +96,8 @@ export function AppSidebar({ triggerReload = null, ...props }: AppSidebarProps) 
         const activeProjectId = currentProjectId || projects[0]?.projectId || "";
         
         // Only update sessionStorage if it's empty
-        if (!sessionStorage.getItem("projectId") && activeProjectId) {
-          sessionStorage.setItem("projectId", activeProjectId);
+        if (!currentProjectId && activeProjectId) {
+          setCurrentProjectId(activeProjectId);
         }
 
         const teams = projects.map(project => ({

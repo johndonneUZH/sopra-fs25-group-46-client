@@ -13,7 +13,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/commons/breadcrumb";
 
-import { useProject } from '@/hooks/useProject'
+import { useCurrentProjectId } from "@/lib/commons/useCurrentProjectId";
 import { NewProject } from "@/components/commons/NewProject";
 
 //import ChangeLogSidebar from "@/components/dashboard_Project/ChangeLogSidebar";
@@ -21,9 +21,9 @@ import { NewProject } from "@/components/commons/NewProject";
 
 export default function ChangelogPage() {
 
- // const { projectId } = useParams();
-  //const { logEntries } = useStoreLog(projectId as string);
-  const { projectId: currentProjectId } = useProject()
+  // const { projectId } = useParams();
+  // const { logEntries } = useStoreLog(projectId as string);
+  const projectId = useCurrentProjectId();
 
   return (
     <SidebarProvider>
@@ -44,7 +44,7 @@ export default function ChangelogPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </header>
-          { !currentProjectId ? <NewProject/> :
+          {!projectId ? <NewProject /> :
           <div className="flex flex-col flex-1 p-4">
             <h1 className="text-xl font-bold mb-10">Changelog</h1>
           </div>

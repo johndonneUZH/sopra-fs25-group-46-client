@@ -25,10 +25,15 @@ export class ApiService {
    */
   //Including token to get access
   private buildHeaders(): HeadersInit {
-    const token = sessionStorage.getItem("token"); 
+    const rawToken = sessionStorage.getItem("token");
+  
+    const token = rawToken?.startsWith("Bearer ")
+      ? rawToken
+      : `Bearer ${rawToken}`;
+  
     return {
       ...this.defaultHeaders,
-      ...(token ? { Authorization: token } : {}),
+      ...(rawToken ? { Authorization: token } : {}),
     };
   }
   

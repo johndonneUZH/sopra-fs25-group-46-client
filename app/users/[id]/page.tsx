@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-import { AppSidebar } from "@/components/sidebar/app-sidebar"
+//import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { Separator } from "@/components/commons/separator"
 import { Button } from "@/components/commons/button"
 import { useRouter } from "next/navigation";
@@ -40,6 +40,7 @@ import {
   LogOut,
 } from "lucide-react"
 import { ContributionsChart } from "@/components/user_page/contributions-chart";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 interface UserData {
   name: string;
