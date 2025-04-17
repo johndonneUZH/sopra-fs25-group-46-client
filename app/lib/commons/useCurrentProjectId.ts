@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-// Custom hook para leer el projectId desde sessionStorage y escuchar cambios
+
 export function useCurrentProjectId(): string {
   const [projectId, setProjectId] = useState("");
 
@@ -33,7 +33,6 @@ export function useCurrentProjectId(): string {
   return projectId;
 }
 
-// Función auxiliar para actualizar el projectId y notificar listeners
 export function setCurrentProjectId(newId: string) {
   sessionStorage.setItem("projectId", newId);
   window.dispatchEvent(new CustomEvent("projectChanged", { detail: newId }));
